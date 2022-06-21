@@ -1,14 +1,9 @@
+use crate::game::board::{ Board, PlayerEnum };
 
-pub struct Player {
-    pub name: String
-}
+pub trait Player {
+    fn assign_piece(&self, player_enum: PlayerEnum) {}
 
-
-impl Player {
-    pub fn new(name: String) -> Player {
-        Player {
-            name: name
-        }
+    fn play_turn(&self, board: Board) -> usize {
+        0
     }
-
 }
