@@ -1,16 +1,19 @@
+extern crate core;
+
 mod game;
 
-use std::time::{Duration, Instant};
-use itertools::Itertools;
-use crate::game::board::{Board, PlayerEnum};
 use crate::game::board_iterator::BoardIterator;
-
+use crate::game::game::Game;
+use crate::game::game_state::{GameState, PlayerEnum};
+use crate::game::player::HumanPlayer;
+use itertools::Itertools;
+use std::time::{Duration, Instant};
 
 fn play_game() {
-    let mut b = Board::new();
+    let mut b = GameState::new();
     let mut turn_count = 0;
     let mut player = PlayerEnum::X;
-    let mut line= String::new();
+    let mut line = String::new();
     println!("{}", b.get_display());
     while !(b.is_winner(PlayerEnum::X) || b.is_winner(PlayerEnum::O) || turn_count == 9) {
         println!("Enter move (0-8): ");
@@ -19,7 +22,7 @@ fn play_game() {
         line.clear();
         if pos > 9 || !b.is_empty(pos as usize).unwrap() {
             println!("Invalid move!");
-            continue
+            continue;
         }
         b.set(pos as usize, player).unwrap();
         if matches!(player, PlayerEnum::X) {
@@ -39,7 +42,7 @@ fn play_game() {
     }
 }
 
-pub fn get_true_board(board: Board) -> Board {
+pub fn get_true_board(board: GameState) -> GameState {
     let num_transformations = 8;
     let mut min_board = board.clone();
     for i in 0..num_transformations {
@@ -48,15 +51,20 @@ pub fn get_true_board(board: Board) -> Board {
             min_board = transformed_board
         }
     }
-    return min_board
+    return min_board;
 }
 
-
-fn main() {
+fn board_eval() {
     let boards = BoardIterator::new();
     let unique_boards = boards.map(|b| get_true_board(b)).unique().collect_vec();
-    let o_winner_boards = unique_boards.iter().filter(|b| b.is_winner(PlayerEnum::O)).collect_vec();
-    let x_winner_boards = unique_boards.iter().filter(|b| b.is_winner(PlayerEnum::X)).collect_vec();
+    let o_winner_boards = unique_boards
+        .iter()
+        .filter(|b| b.is_winner(PlayerEnum::O))
+        .collect_vec();
+    let x_winner_boards = unique_boards
+        .iter()
+        .filter(|b| b.is_winner(PlayerEnum::X))
+        .collect_vec();
     let tie_boards = unique_boards.iter().filter(|b| b.is_tie()).collect_vec();
     println!("Total: {}", unique_boards.len());
     println!("O winners: {}", o_winner_boards.len());
@@ -68,5 +76,17 @@ fn main() {
     println!("Incomplete: {}", incomplete);
     for tie_board in tie_boards {
         println!("{}\n", tie_board.get_display());
+    }
+}
+
+fn main() {
+    let mut p1 = Box::new(HumanPlayer::new());
+    let mut p2 = Box::new(HumanPlayer::new());
+    let mut game = Game::new(p1, p2);
+    match game.play() {
+        Some(PlayerEnum::X) => println!("X wins!"),
+        Some(PlayerEnum::O) => println!("O wins!"),
+        None => println!("Bummer! A tie..."),
+        _ => {}
     }
 }

@@ -1,40 +1,38 @@
+use crate::game::consts::BOARD_SIZE;
+use crate::game::game_state::{GameState, PlayerEnum};
+use itertools::structs::Permutations;
+use itertools::Itertools;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::ops::Range;
-use itertools::Itertools;
-use itertools::structs::Permutations;
-use crate::game::board::{ Board, PlayerEnum };
-use crate::game::consts::BOARD_SIZE;
-
-
 
 pub struct BoardIterator {
-    board: Board,
+    board: GameState,
     iteration_count: usize,
     permutations: Permutations<Range<usize>>,
     current_turn_order: Option<Vec<usize>>,
-    turn_index: usize
+    turn_index: usize,
 }
 
 impl BoardIterator {
     pub fn new() -> BoardIterator {
-        BoardIterator{
-            board: Board::new(),
+        BoardIterator {
+            board: GameState::new(),
             iteration_count: 0,
             permutations: (0..9).permutations(9),
             current_turn_order: None,
-            turn_index: 0
+            turn_index: 0,
         }
     }
 }
 
 impl Iterator for BoardIterator {
-    type Item = Board;
+    type Item = GameState;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.iteration_count == 0 {
             self.iteration_count += 1;
-            return Some(Board::new());
+            return Some(GameState::new());
         }
         if self.turn_index >= BOARD_SIZE {
             self.current_turn_order = None
@@ -42,7 +40,7 @@ impl Iterator for BoardIterator {
         let mut turn_order = self.current_turn_order.as_ref();
         if turn_order.is_none() {
             self.turn_index = 0;
-            self.board = Board::new();
+            self.board = GameState::new();
             self.current_turn_order = self.permutations.next();
             turn_order = self.current_turn_order.as_ref();
             if turn_order.is_none() {
@@ -60,6 +58,6 @@ impl Iterator for BoardIterator {
         }
         self.turn_index += 1;
         self.iteration_count += 1;
-        return Some(self.board)
+        return Some(self.board);
     }
 }
